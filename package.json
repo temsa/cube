@@ -2,14 +2,22 @@
   "name": "cube",
   "version": "0.2.3",
   "description": "A system for analyzing time series data using MongoDB and Node.",
-  "keywords": ["time series"],
+  "keywords": [
+    "time series"
+  ],
   "homepage": "http://square.github.com/cube/",
-  "author": {"name": "Mike Bostock", "url": "http://bost.ocks.org/mike"},
-  "repository": {"type": "git", "url": "http://github.com/square/cube.git"},
+  "author": {
+    "name": "Mike Bostock",
+    "url": "http://bost.ocks.org/mike"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/square/cube.git"
+  },
   "main": "./lib/cube",
   "dependencies": {
     "mongodb": "1.0.1",
-    "node-static": "0.5.9",
+    "node-static": "~0.6.0",
     "pegjs": "0.6.2",
     "vows": "0.5.11",
     "websocket": "1.0.3",
