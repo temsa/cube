@@ -9,6 +9,7 @@
       filterNotEqual = filter("$ne"),
       filterRegularExpression = filter("$regex"),
       filterIn = filter("$in"),
+      filterExists = filter("$exists"),
       exists = {$exists: true};
 
   function add(a, b) { return a + b; }
@@ -177,6 +178,7 @@ filter_operator
   / "ne" { return filterNotEqual; }
   / "re" { return filterRegularExpression; }
   / "in" { return filterIn; }
+  / "exists" { return filterExists; }
 
 reduce
   = "sum"
