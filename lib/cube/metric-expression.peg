@@ -9,7 +9,7 @@
       filterNotEqual = filter("$ne"),
       filterRegularExpression = filter("$regex"),
       filterIn = filter("$in"),
-      filterExists = filter("$exists"),
+      filterExists = filter("$exists", true),
       exists = {$exists: true};
 
   function add(a, b) { return a + b; }
@@ -20,12 +20,12 @@
   function one() { return 1; }
   function noop() {}
 
-  function filter(op) {
-    return function(o, k, v) {
+  function filter(op, defaultVal) {
+    return function(o/*bject*/, k/*ey*/, v/*alue*/) {
       var f = o[k];
       switch (typeof f) {
         case "undefined": o[k] = f = {}; // continue
-        case "object": f[op] = v; break;
+        case "object": f[op] = (v !== undefined) ? v : defaultVal; break;
         // otherwise, observe the existing equals (literal) filter
       }
     };
@@ -135,6 +135,7 @@ event_expression
 
 event_filter_expression
   = op:filter_operator _ "(" _ member:event_member_expression _ "," _ value:literal _ ")" { return function(o) { op(o, member.field, value); }; }
+  / op:filter_operator _ "(" _ member:event_member_expression _ ")" { return function(o) { op(o, member.field); }; }
 
 event_value_expression
   = type:type _ "(" _ value:event_additive_expression _ ")" { value.type = type; return value; }
