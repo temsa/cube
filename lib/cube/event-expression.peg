@@ -36,6 +36,7 @@
   }
 
   function objectAccessor(name) {
+  
     return name;
   }
 
@@ -57,11 +58,13 @@
   }
 
   function member(head, tail) {
+
     var fields = ["d", head].concat(tail),
         shortName = fields.filter(function(d) { return !d.array; }).join("."),
         longName = fields.join("."),
         i = -1,
         n = fields.length;
+
     return {
       field: longName,
       exists: function(o) {
@@ -71,6 +74,38 @@
       },
       fields: function(o) {
         o[shortName] = 1;
+      }
+    };
+  }
+  
+  function alternativeMember(head, tail) {
+  	tail = tail.map(function(t){return t[3]})
+    var fields = [head.field].concat(tail.map(function(e){return e.field}))
+    
+    var or = "$or";
+    or.array = true;
+    return {
+      field: or,
+      exists: function(o) {
+      	
+      	o["$or"] = o["$or"] || [];
+      	var l = o["$or"].length;
+      	if(! o["$or"][l]){
+      		o["$or"][l]={};
+      	}
+
+      	head.exists(o["$or"][l]);
+      	tail.forEach(function(e,i){
+      		if(! o["$or"][l+i+1]){
+      			o["$or"][l+i+1]={};
+      		}
+      		e.exists(o["$or"][l+i+1]);
+      	})
+      },
+      
+      fields: function(o) {      	
+        head.fields(o);
+      	tail.forEach(function(e,i){e.fields(o);	})
       }
     };
   }
@@ -93,14 +128,19 @@ event_expression
 
 
 event_filter_expression
-  = op:filter_operator _ "(" _ member:event_member_expression _ "," _ value:literal _ ")" { return function(o) { op(o, member.field, value); }; }
-  / op:filter_operator _ "(" _ member:event_member_expression _ ")" { return function(o) { op(o, member.field); }; }
+  = op:filter_operator _ "(" _ member:event_alternative_member_expression _ "," _ value:literal _ ")" { return function(o) { op(o, member.field, value); }; }
+  / op:filter_operator _ "(" _ member:event_alternative_member_expression _ ")" { return function(o) { op(o, member.field); }; }
 
 event_value_expression
   = type:type _ "(" _ "*" _ ")" { return {type: type, exists: noop, fields: everything}; }
-  / type:type _ "(" _ head:event_member_expression tail:(_ "," _ event_member_expression)* _ ")" { return compoundFields(type, head, tail); }
+  / type:type _ "(" _ head:event_alternative_member_expression tail:(_ "," _ event_alternative_member_expression)* _ ")" { return compoundFields(type, head, tail); }
   / type:type { return {type: type, exists: noop, fields: noop}; }
 
+event_alternative_member_expression
+ = head:event_member_expression tail:(
+	_ "|" _ tail:event_member_expression
+	 )* { return alternativeMember(head, tail); }
+ 
 event_member_expression
   = head:identifier tail:(
         _ "[" _ name:number _ "]" { return arrayAccessor(name); }
