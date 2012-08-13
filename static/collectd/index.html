@@ -32,21 +32,24 @@ var horizon = context.horizon();
 
 //
 var metrics = [
-  cube.metric("sum(collectd(interface.if_octets.rx))").multiply(8).divide(step / 1e3),
-  cube.metric("sum(collectd(-interface.if_octets.tx))").multiply(8).divide(step / 1e3),
-  cube.metric("sum(collectd(disk.disk_ops.read))").divide(step / 1e3),
-  cube.metric("sum(collectd(-disk.disk_ops.write))").divide(step / 1e3),
-  cube.metric("max(collectd(load.shortterm))"),
-  cube.metric("max(collectd(load.midterm))"),
-  cube.metric("max(collectd(load.longterm))"),
-  cube.metric("max(collectd(memory).eq(type, 'wired'))"),
-  cube.metric("max(collectd(memory).eq(type, 'inactive'))"),
-  cube.metric("max(collectd(memory).eq(type, 'active'))"),
-  cube.metric("max(collectd(memory).eq(type, 'free'))"),
-  cube.metric("max(collectd(df.df_complex).eq(plugin, 'root').eq(type, 'reserved'))"),
-  cube.metric("max(collectd(df.df_complex).eq(plugin, 'root').eq(type, 'used'))"),
-  cube.metric("max(collectd(df.df_complex).eq(plugin, 'root').eq(type, 'free'))"),
-  cube.metric("sum(collectd(df.df_complex).eq(host, 'localhost').eq(plugin, 'root').eq(type, 'used')) / sum(collectd(df.df_complex).eq(host, 'localhost').eq(plugin, 'root').in(type, ['used', 'free']))")
+  cube.metric("sum(interface(wlan0.if_octets.rx | eth0.if_octets.rx))").multiply(8).divide(step / 1e3),
+  cube.metric("sum(interface(wlan0.if_octets.tx | eth0.if_octets.tx))").multiply(8).divide(step / 1e3),
+  cube.metric("sum(disk(octets.read))").divide(step / 1e3),
+  cube.metric("-sum(disk(octets.write))").divide(step / 1e3),
+  cube.metric("max(load(shortterm))"),
+  cube.metric("max(load(midterm))"),
+  cube.metric("max(load(longterm))"),
+  cube.metric("max(memory(cached))"),
+  cube.metric("max(memory(inactive | buffered))"),
+  cube.metric("max(memory(active | used))"),
+  cube.metric("max(memory(free))"),
+
+  cube.metric("avg(cpu(user | system))"),
+
+  cube.metric("max(df(root.used))"),
+  cube.metric("max(df(root.free))"),
+  cube.metric("sum(df(root.used).eq(host, 'localhost')) / sum(df(root.used + root.free).eq(host, 'localhost'))")
+  
 ];
 
 // Add top and bottom axes to display the time.
