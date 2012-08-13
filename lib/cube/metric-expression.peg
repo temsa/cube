@@ -1,5 +1,4 @@
 // TODO allow null literals (requires fixing pegjs)
-
 {
   var filterEqual = function(o, k, v) { o[k] = v; },
       filterGreater = filter("$gt"),
@@ -21,14 +20,18 @@
   function noop() {}
 
   function filter(op, defaultVal) {
-    return function(o/*bject*/, k/*ey*/, v/*alue*/) {
+    return function assign(o/*bject*/, k/*ey*/, v/*alue*/) {
+    	if(Array.isArray(k)) {
+    		o["$or"]=[];
+    		return k.forEach(function(key,i){o["$or"][i]={}; assign(o["$or"][i], key, v)})
+    	}
       var f = o[k];
       switch (typeof f) {
         case "undefined": o[k] = f = {}; // continue
         case "object": f[op] = (v !== undefined) ? v : defaultVal; break;
         // otherwise, observe the existing equals (literal) filter
       }
-    };
+    }
   }
 
   function arrayAccessor(name) {
@@ -96,11 +99,60 @@
       value: function(o) {
         var i = -1;
         while (++i < n) {
+        	var field = o[fields[i]];
+        	if(field === undefined) {
+        		return undefined;
+        	} 
           o = o[fields[i]];
         }
         return o;
       }
     };
+  }
+  
+  function alternativeMember(head, tail) {
+  	tail = tail.map(function(t){return t[3]})
+    var fields = [head.field].concat(tail.map(function(e){return e.field}))
+    
+    var or = "$or";
+    or.array = true;
+    if(tail.length===0) {
+		  return head;
+    } else {
+		  return {
+		    field:  fields,
+		    exists: function(o) {
+		    	o[or] = o[or] || [];
+		    	var l = o[or].length;
+		    	if(! o[or][l]){
+		    		o[or][l]={};
+		    	}
+
+		    	head.exists(o[or][l]);
+		    	tail.forEach(function(e,i){
+		    		if(! o[or][l+i+1]){
+		    			o[or][l+i+1]={};
+		    		}
+		    		e.exists(o[or][l+i+1]);
+		    	})
+		    },
+		    
+		    fields: function(o) { 	
+		      head.fields(o);
+		    	tail.forEach(function(e,i){e.fields(o);	})
+		    },
+		    
+		    value : function(o) {
+		    	var v = head.value(o);
+		    	if(typeof v === "undefined") {
+				  	for(var i=0; i<tail.length && typeof v === "undefined"; i++) {
+				  		v = tail[i].value(o);
+				  	}
+		    	}
+		      return v;
+		    }
+		  }
+		}
   }
 }
 
@@ -134,8 +186,8 @@ event_expression
 }
 
 event_filter_expression
-  = op:filter_operator _ "(" _ member:event_member_expression _ "," _ value:literal _ ")" { return function(o) { op(o, member.field, value); }; }
-  / op:filter_operator _ "(" _ member:event_member_expression _ ")" { return function(o) { op(o, member.field); }; }
+  = op:filter_operator _ "(" _ member:event_alternative_member_expression _ "," _ value:literal _ ")" { return function(o) { op(o, member.field, value); }; }
+  / op:filter_operator _ "(" _ member:event_alternative_member_expression _ ")" { return function(o) { op(o, member.field); }; }
 
 event_value_expression
   = type:type _ "(" _ value:event_additive_expression _ ")" { value.type = type; return value; }
@@ -152,9 +204,12 @@ event_unary_expression
   / "-" _ unary:event_unary_expression { return {value: function(o) { return -unary.value(o); }, exists: unary.exists, fields: unary.fields}; }
 
 event_primary_expression
-  = event_member_expression
+  = event_alternative_member_expression
   / number:number { return {value: function() { return number; }, exists: noop, fields: noop}; }
   / "(" _ expression:event_additive_expression _ ")" { return expression; }
+
+event_alternative_member_expression
+ = head:event_member_expression tail:(_ "|" _ tail:event_member_expression )* { return alternativeMember(head, tail); }
 
 event_member_expression
   = head:identifier tail:(
