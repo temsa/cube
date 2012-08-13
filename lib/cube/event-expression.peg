@@ -1,5 +1,4 @@
 // TODO allow null literals (requires fixing pegjs)
-
 {
   var filterEqual = function(o, k, v) { o[k] = v; },
       filterGreater = filter("$gt"),
@@ -26,6 +25,7 @@
         case "object": f[op] = (v !== undefined) ? v : defaultVal; break;
         // otherwise, observe the existing equals (literal) filter
       }
+      
     };
   }
 
@@ -84,30 +84,34 @@
     
     var or = "$or";
     or.array = true;
-    return {
-      field: or,
-      exists: function(o) {
-      	
-      	o["$or"] = o["$or"] || [];
-      	var l = o["$or"].length;
-      	if(! o["$or"][l]){
-      		o["$or"][l]={};
-      	}
+    if(tail.length===0) {
+		  return head;
+    } else {
+		  return {
+		    field: or,
+		    exists: function(o) {
+		    	
+		    	o["$or"] = o["$or"] || [];
+		    	var l = o["$or"].length;
+		    	if(! o["$or"][l]){
+		    		o["$or"][l]={};
+		    	}
 
-      	head.exists(o["$or"][l]);
-      	tail.forEach(function(e,i){
-      		if(! o["$or"][l+i+1]){
-      			o["$or"][l+i+1]={};
-      		}
-      		e.exists(o["$or"][l+i+1]);
-      	})
-      },
-      
-      fields: function(o) {      	
-        head.fields(o);
-      	tail.forEach(function(e,i){e.fields(o);	})
-      }
-    };
+		    	head.exists(o["$or"][l]);
+		    	tail.forEach(function(e,i){
+		    		if(! o["$or"][l+i+1]){
+		    			o["$or"][l+i+1]={};
+		    		}
+		    		e.exists(o["$or"][l+i+1]);
+		    	})
+		    },
+		    
+		    fields: function(o) {      	
+		      head.fields(o);
+		    	tail.forEach(function(e,i){e.fields(o);	})
+		    }
+		  }
+    }
   }
 
 }
