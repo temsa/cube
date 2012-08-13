@@ -183,6 +183,7 @@ filter_operator
 
 reduce
   = "sum"
+  / "avg"
   / "min"
   / "max"
   / "distinct"
