@@ -43,9 +43,10 @@ var metrics = [
   cube.metric("max(memory(inactive | buffered))"),
   cube.metric("max(memory(active | used))"),
   cube.metric("max(memory(free))"),
-
+  cube.metric("max(swap(used | cached))"),
+  cube.metric("max(swap(free))"),
+  cube.metric("max(swap(in.swap_io | out.swap_io))"),
   cube.metric("avg(cpu(user | system))"),
-
   cube.metric("max(df(root.used))"),
   cube.metric("max(df(root.free))"),
   cube.metric("sum(df(root.used).eq(host, 'localhost')) / sum(df(root.used + root.free).eq(host, 'localhost'))")
