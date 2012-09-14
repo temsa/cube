@@ -32,8 +32,8 @@ var horizon = context.horizon();
 
 //
 var metrics = [
-  cube.metric("sum(interface(wlan0.if_octets.rx | eth0.if_octets.rx))").multiply(8).divide(step / 1e3),
-  cube.metric("sum(interface(wlan0.if_octets.tx | eth0.if_octets.tx))").multiply(8).divide(step / 1e3),
+  cube.metric("sum(interface(wlan0.octets.rx | eth0.octets.rx))").multiply(8).divide(step / 1e3),
+  cube.metric("sum(interface(wlan0.octets.tx | eth0.octets.tx))").multiply(8).divide(step / 1e3),
   cube.metric("sum(disk(octets.read))").divide(step / 1e3),
   cube.metric("-sum(disk(octets.write))").divide(step / 1e3),
   cube.metric("max(load(shortterm))"),
