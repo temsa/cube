@@ -14,7 +14,7 @@
   function noop() {}
 
   function everything(fields) {
-    delete fields.t;
+    delete fields['_id'];
   }
 
   function filter(op, defaultVal) {
