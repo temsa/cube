@@ -102,18 +102,18 @@
         	var field = o[fields[i]];
         	if(field === undefined) {
         		return undefined;
-        	} 
+        	}
           o = o[fields[i]];
         }
         return o;
       }
     };
   }
-  
+
   function alternativeMember(head, tail) {
   	tail = tail.map(function(t){return t[3]})
     var fields = [head.field].concat(tail.map(function(e){return e.field}))
-    
+
     var or = "$or";
     or.array = true;
     if(tail.length===0) {
@@ -136,12 +136,12 @@
 		    		e.exists(o[or][l+i+1]);
 		    	})
 		    },
-		    
-		    fields: function(o) { 	
+
+		    fields: function(o) {
 		      head.fields(o);
 		    	tail.forEach(function(e,i){e.fields(o);	})
 		    },
-		    
+
 		    value : function(o) {
 		    	var v = head.value(o);
 		    	if(typeof v === "undefined") {
@@ -157,7 +157,7 @@
 }
 
 start
-  = _ expression:metric_additive_expression _ { return expression; }
+  = _ expression:metric_additive_expression _ { if (!expression.filter) expression.filter = noop; return expression; }
 
 metric_additive_expression
   = head:metric_multiplicative_expression tail:(_ additive_operator _ metric_additive_expression)* { return compoundMetric(head, tail); }
