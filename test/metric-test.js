@@ -177,7 +177,7 @@ function metricTest(request, expected) {
 
       // each metric defines only time and value properties
       actual.forEach(function(d) {
-        assert.deepEqual(Object.keys(d), ["time", "value"]);
+        assert.deepEqual(Object.keys(d), ["time", "value", "id"]);
       });
 
       // returns the expected times
